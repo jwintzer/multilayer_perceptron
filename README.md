@@ -25,7 +25,6 @@ python split.py data.csv
 Options:
 - `--ratio` / `-r` : fraction of data used for training (default: `0.8`)
 - `--seed` / `-s` : random seed for reproducibility
-- `--label-col` : index of the label column (default: `1`)
 
 Outputs `train.csv` and `val.csv`.
 
@@ -43,7 +42,7 @@ Options:
 - `--batch-size` : mini-batch size (default: `32`)
 - `--weights-initializer` : weight init method — `heUniform` or `xavier` (default: `heUniform`)
 
-Prints loss and val_loss at each epoch. Saves model to `saved_model/` at the end.
+Prints loss and val_loss at each epoch. Saves model to `saved_model.npy` at the end.
 
 Example:
 ```bash
@@ -57,7 +56,7 @@ python predict.py val.csv
 ```
 
 Options:
-- `--model` / `-m` : path to saved model directory (default: `saved_model`)
+- `--model` / `-m` : path to saved model file (default: `saved_model.npy`)
 
 Loads the saved model, runs inference, and evaluates using binary cross-entropy.
 
