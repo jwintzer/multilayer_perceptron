@@ -10,7 +10,7 @@ def load_data(filepath, label_col=1):
     """
     df = pd.read_csv(filepath, header=None)
 
-    # col 0 is the sample ID, not a feature
+    # drop sampleID column
     df = df.drop(columns=[0]).reset_index(drop=True)
 
     # after dropping col 0, label_col shifts left by 1
@@ -32,7 +32,7 @@ def encode_labels(y_raw):
         y_onehot : (n_samples, n_classes) float array
         classes  : sorted list of class names (index = class id)
     """
-    classes = sorted(set(y_raw))  # ['B', 'M'] for WBCD
+    classes = sorted(set(y_raw))
     class_to_idx = {c: i for i, c in enumerate(classes)}
 
     y = np.zeros((len(y_raw), len(classes)))
