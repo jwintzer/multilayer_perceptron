@@ -60,3 +60,78 @@ def compute_accuracy(y_pred, y_true):
 def predict(network, X):
     """Run inference — forward pass with no gradient tracking."""
     return forward(network, X)
+
+
+def _backward(network, y_pred, y_true, learning_rate):
+    """
+    Backpropagation through the whole network.
+    Updates weights and biases of every layer in place.
+
+    For the output layer (softmax + categorical cross-entropy) the combined
+    gradient simplifies cleanly to:  delta = y_pred - y_true
+
+    For every hidden layer below, the chain rule gives:
+        delta_prev = (W.T @ delta.T).T * activation'(z_prev)
+    """
+    batch_size = y_pred.shape[0]
+
+    # output layer: softmax + categorical CE combined gradient
+    delta = y_pred - y_true  # (batch, n_out)
+
+    for i in range(len(network) - 1, 0, -1):
+        layer = network[i]
+
+        # gradient w.r.t. weights and biases
+        dW = (delta.T @ layer.input) / batch_size   # (n_i, n_{i-1})
+        db = delta.mean(axis=0, keepdims=True).T     # (n_i, 1)
+
+        # propagate error signal to the layer below before touching weights
+        if i > 1:
+            delta = (layer.weights.T @ delta.T).T * network[i - 1].activation_gradient()
+
+        layer.weights -= learning_rate * dW
+        layer.biases  -= learning_rate * db
+
+
+def fit(network, X_train, y_train, X_val, y_val,
+        loss="categoricalCrossentropy", learning_rate=0.01,
+        batch_size=32, epochs=100):
+    """
+    Train the network using mini-batch gradient descent.
+    Returns a history dict with loss/accuracy per epoch (for plotting).
+    """
+    history = {"loss": [], "val_loss": [], "acc": [], "val_acc": []}
+    n = len(X_train)
+
+    for epoch in range(1, epochs + 1):
+        # shuffle training data each epoch
+        idx = np.random.permutation(n)
+        X_shuf, y_shuf = X_train[idx], y_train[idx]
+
+        # mini-batch passes
+        for start in range(0, n, batch_size):
+            Xb = X_shuf[start:start + batch_size]
+            yb = y_shuf[start:start + batch_size]
+            out = forward(network, Xb)
+            _backward(network, out, yb, learning_rate)
+
+        # full-dataset metrics for reporting (no gradient update here)
+        train_out = forward(network, X_train)
+        val_out   = forward(network, X_val)
+
+        train_loss = categorical_cross_entropy(train_out, y_train)
+        val_loss   = categorical_cross_entropy(val_out,   y_val)
+        train_acc  = compute_accuracy(train_out, y_train)
+        val_acc    = compute_accuracy(val_out,   y_val)
+
+        history["loss"].append(train_loss)
+        history["val_loss"].append(val_loss)
+        history["acc"].append(train_acc)
+        history["val_acc"].append(val_acc)
+
+        print(f"epoch {epoch:02d}/{epochs} - loss: {train_loss:.4f} - val_loss: {val_loss:.4f}")
+
+    # TODO: plot learning curves
+    # TODO: save model to disk
+
+    return history
