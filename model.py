@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from layers import DenseLayer
 
 
 def createNetwork(layer_list):
@@ -131,7 +133,79 @@ def fit(network, X_train, y_train, X_val, y_val,
 
         print(f"epoch {epoch:02d}/{epochs} - loss: {train_loss:.4f} - val_loss: {val_loss:.4f}")
 
-    # TODO: plot learning curves
-    # TODO: save model to disk
+    _plot_history(history)
 
     return history
+
+
+def _plot_history(history):
+    """Display loss and accuracy learning curves after training."""
+    epochs = range(1, len(history["loss"]) + 1)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+
+    ax1.plot(epochs, history["loss"],     label="train")
+    ax1.plot(epochs, history["val_loss"], label="val")
+    ax1.set_title("Loss")
+    ax1.set_xlabel("epoch")
+    ax1.set_ylabel("loss")
+    ax1.legend()
+
+    ax2.plot(epochs, history["acc"],     label="train")
+    ax2.plot(epochs, history["val_acc"], label="val")
+    ax2.set_title("Accuracy")
+    ax2.set_xlabel("epoch")
+    ax2.set_ylabel("accuracy")
+    ax2.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+
+def save_model(network, mean, std, classes, filepath="saved_model.npy"):
+    """
+    Serialize the network to a single .npy file.
+    Stores topology, weights, biases, and preprocessing params so
+    predict.py can reconstruct and apply the exact same pipeline.
+    """
+    topology = []
+    weights  = []
+    biases   = []
+
+    for layer in network:
+        topology.append({
+            "n_neurons":           layer.n_neurons,
+            "activation":          layer.activation,
+            "weights_initializer": layer.weights_initializer,
+        })
+        weights.append(layer.weights)
+        biases.append(layer.biases)
+
+    model_data = {
+        "topology": topology,
+        "weights":  weights,
+        "biases":   biases,
+        "mean":     mean,
+        "std":      std,
+        "classes":  classes,
+    }
+
+    np.save(filepath, model_data)
+    print(f"> saving model '{filepath}' to disk...")
+
+
+def load_model(filepath="saved_model.npy"):
+    """
+    Reconstruct a network from a saved .npy file.
+    Returns (network, mean, std, classes).
+    """
+    data = np.load(filepath, allow_pickle=True).item()
+
+    network = []
+    for i, t in enumerate(data["topology"]):
+        layer = DenseLayer(t["n_neurons"], t["activation"], t["weights_initializer"])
+        layer.weights = data["weights"][i]
+        layer.biases  = data["biases"][i]
+        network.append(layer)
+
+    return network, data["mean"], data["std"], data["classes"]
