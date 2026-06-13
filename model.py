@@ -102,6 +102,9 @@ def fit(network, X_train, y_train, X_val, y_val,
     Train the network using mini-batch gradient descent.
     Returns a history dict with loss/accuracy per epoch (for plotting).
     """
+    if loss != "categoricalCrossentropy":
+        raise ValueError(f"unsupported loss '{loss}' — only 'categoricalCrossentropy' is supported for training")
+
     history = {"loss": [], "val_loss": [], "acc": [], "val_acc": []}
     n = len(X_train)
 

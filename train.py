@@ -28,9 +28,9 @@ def main(
     X_train, mean, std = prep.normalize(X_train_raw)
     X_val,   _,   _   = prep.normalize(X_val_raw, mean, std)
 
-    # one-hot encode — class ordering is derived from train and applies to both
+    # one-hot encode — derive class ordering from train, force same order on val
     y_train, classes = prep.encode_labels(y_train_raw)
-    y_val,   _       = prep.encode_labels(y_val_raw)
+    y_val,   _       = prep.encode_labels(y_val_raw, classes)
 
     print(f"x_train shape : {X_train.shape}")
     print(f"x_valid shape : {X_val.shape}")

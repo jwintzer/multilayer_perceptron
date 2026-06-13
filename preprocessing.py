@@ -21,18 +21,22 @@ def load_data(filepath, label_col=1):
     return X, y_raw
 
 
-def encode_labels(y_raw):
+def encode_labels(y_raw, classes=None):
     """
     One-hot encode string labels.
     Classes are sorted alphabetically so the mapping is deterministic:
       B -> index 0 -> [1, 0]
       M -> index 1 -> [0, 1]
 
+    Pass classes explicitly to reuse the ordering from the training set
+    (so val/test never derive their own ordering).
+
     Returns:
         y_onehot : (n_samples, n_classes) float array
         classes  : sorted list of class names (index = class id)
     """
-    classes = sorted(set(y_raw))
+    if classes is None:
+        classes = sorted(set(y_raw))
     class_to_idx = {c: i for i, c in enumerate(classes)}
 
     y = np.zeros((len(y_raw), len(classes)))
