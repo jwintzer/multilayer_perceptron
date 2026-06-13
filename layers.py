@@ -36,7 +36,7 @@ class DenseLayer:
         Called by model.createNetwork() once the previous layer size is known.
         """
         if self.weights_initializer == "heUniform":
-            limit = np.sqrt(2.0 / n_inputs)  # He uniform: sample from Uniform(-limit, limit)
+            limit = np.sqrt(6.0 / n_inputs)  # He uniform: sample from Uniform(-limit, limit)
             self.weights = np.random.uniform(-limit, limit, (self.n_neurons, n_inputs))
         elif self.weights_initializer == "xavier":
             limit = np.sqrt(6.0 / (n_inputs + self.n_neurons))
